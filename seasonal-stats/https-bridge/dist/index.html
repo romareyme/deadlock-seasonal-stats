@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deadlock Seasonal Stats Bridge</title>
+<style>html,body{margin:0;background:#171b20;color:#a4b3ae;font:12px system-ui}main{padding:3px 6px}</style>
+</head><body><main id="status">Deadlock · загрузка статистики</main>
+<script>
+(function () {
+    "use strict";
+    var query = new URLSearchParams(location.search);
+    var account = query.get("account"), request = query.get("request");
+    if (!/^[1-9][0-9]{0,9}$/.test(account || "") || Number(account) > 4294967295 ||
+            !/^[a-zA-Z0-9_-]{1,64}$/.test(request || "")) {
+        document.getElementById("status").textContent = "Мост загрузки сезонной статистики Deadlock. Открывается модом игры.";
+        return;
+    }
+    var dual = query.get("protocol") === "2";
+    var script = document.createElement("script");
+    script.src = dual ? "bridge-v070.js?v=070" : "bridge.js?v=050";
+    script.onload = function () {
+        (dual ? seasonStatsBridgeV2 : seasonStatsBridge)({account: account, request: request});
+    };
+    script.onerror = function () {
+        document.title = (dual ? "DLSWR2:" : "DLSWR1:") + JSON.stringify({kind:"error",code:"network",account:account,request:request});
+    };
+    document.head.appendChild(script);
+}());
+</script></body></html>

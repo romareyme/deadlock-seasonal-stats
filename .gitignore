@@ -1,0 +1,8 @@
+**/__pycache__/
+**/*.pyc
+**/.openai/
+**/.git/
+**/backups/
+**/verification/
+**/node_modules/
+**/*deploy.tar.gz
