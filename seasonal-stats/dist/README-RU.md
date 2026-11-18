@@ -33,15 +33,11 @@ VPK для Deadlock build 6860, подготовлен 18 ноября 2026 го
 
 https://romareyme.github.io/deadlock-seasonal-stats/
 
-Публикация настраивается один раз:
+Pages уже настроен: Source — **GitHub Actions**, а `gh-pages`-ветка не используется. Пуш в `main`, который меняет `seasonal-stats/https-bridge/dist/**`, запускает `.github/workflows/bridge.yml` и перепубликует сайт; тот же запуск можно нажать вручную во вкладке Actions → bridge → Run workflow. Отдельно загружать файлы никуда не нужно.
 
-1. Репозиторий → Settings → Pages → Source: **GitHub Actions** (не «Deploy from a branch»).
-2. Пуш в `main`, который меняет `seasonal-stats/https-bridge/dist/**`, запускает `.github/workflows/bridge.yml`; тот же запуск можно нажать вручную во вкладке Actions.
-3. В `dist` лежат `index.html`, `bridge-v080.js`, `bridge-v070.js`, `bridge.js` и `.nojekyll`; ничего дополнительно загружать не нужно.
+В `dist` лежат `index.html`, `bridge-v080.js`, `bridge-v070.js`, `bridge.js` и `.nojekyll`. Старые `bridge-v070.js` и `bridge.js` остаются для VPK 0.5.0 и 0.7.0. Прежний мост `deadlock-seasonal-bridge-rm24.yokodav27.chatgpt.site` этот мод больше не использует: его можно удалить, если установленных 0.7.0/0.5.0 не осталось — иначе у них пропадёт источник данных.
 
-Старые `bridge-v070.js` и `bridge.js` остаются для VPK 0.5.0 и 0.7.0. Прежний мост `deadlock-seasonal-bridge-rm24.yokodav27.chatgpt.site` этот мод больше не использует: его можно удалить, если установленных 0.7.0/0.5.0 не осталось — иначе у них пропадёт источник данных.
-
-Адрес вшивается в VPK при сборке: по умолчанию GitHub Pages, другой хостинг задаётся флагом `python build.py --bridge https://example.com/bridge/` (адрес должен заканчиваться на `/`). Мост статический, подойдёт любой хостинг с корректным `Content-Type` для `.js`.
+Адрес вшивается в VPK при сборке: по умолчанию GitHub Pages, другой хостинг задаётся флагом `python build.py --bridge https://example.com/bridge/` (адрес заканчивается на `/`). Мост статический, подойдёт любой хостинг с корректным `Content-Type` для `.js` и `.html`.
 
 Пока сайт не поднят, сезоны, ранги и герои работают как раньше, а в блоке «ПАТИ» появляется надпись «Мост не обновлён: нужен v0.8.0».
 
