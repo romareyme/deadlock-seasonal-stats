@@ -7,21 +7,50 @@
 (function () {
     "use strict";
     var query = new URLSearchParams(location.search);
-    var account = query.get("account"), request = query.get("request");
-    if (!/^[1-9][0-9]{0,9}$/.test(account || "") || Number(account) > 4294967295 ||
-            !/^[a-zA-Z0-9_-]{1,64}$/.test(request || "")) {
+    var account = query.get("account") || "", request = query.get("request") || "";
+    var version = query.get("v") || "", mode = query.get("mode") || "", check = query.get("check") || "";
+    function id(value) { return /^[1-9][0-9]{0,9}$/.test(value) && Number(value) <= 4294967295; }
+    function fail(code, prefix) {
+        document.title = (prefix || "DLSWR2:") + JSON.stringify({kind: "error", code: code, account: account, request: request});
+    }
+    if (!id(account) || !/^[a-zA-Z0-9_-]{1,64}$/.test(request)) {
         document.getElementById("status").textContent = "Мост загрузки сезонной статистики Deadlock. Открывается модом игры.";
         return;
     }
+    if (mode && mode !== "party") { fail("mode"); return; }
+    if (check && (!id(check) || check === account)) { fail("check"); return; }
+    // A static host without the file answers with index.html and HTTP 200, so a missing
+    // script shows up as an undefined global rather than as an `onerror` event.
+    if (version === "080") {
+        // 0.8.0: seasonal payload plus the `mode=party` branch used by the party check.
+        var config = {account: account, request: request, mode: mode, check: check};
+        var script = document.createElement("script");
+        script.src = "bridge-v080.js?v=080";
+        script.onload = function () {
+            if (typeof seasonStatsBridgeV3 !== "function") { fail("bridge"); return; }
+            seasonStatsBridgeV3(config);
+        };
+        script.onerror = function () { fail("network"); };
+        document.head.appendChild(script);
+        return;
+    }
+    if (mode) {
+        // The mod asks for party data a deployed 0.7.0 bridge cannot provide.
+        fail("bridge");
+        return;
+    }
     var dual = query.get("protocol") === "2";
-    var script = document.createElement("script");
-    script.src = dual ? "bridge-v070.js?v=070" : "bridge.js?v=050";
-    script.onload = function () {
-        (dual ? seasonStatsBridgeV2 : seasonStatsBridge)({account: account, request: request});
+    var legacy = document.createElement("script");
+    legacy.src = dual ? "bridge-v070.js?v=070" : "bridge.js?v=050";
+    legacy.onload = function () {
+        // Never touch the global directly: a missing script makes it throw a ReferenceError
+        // before any guard could run.
+        var bridge = dual ? (typeof seasonStatsBridgeV2 === "function" ? seasonStatsBridgeV2 : null)
+            : (typeof seasonStatsBridge === "function" ? seasonStatsBridge : null);
+        if (!bridge) { fail("bridge", dual ? "DLSWR2:" : "DLSWR1:"); return; }
+        bridge({account: account, request: request});
     };
-    script.onerror = function () {
-        document.title = (dual ? "DLSWR2:" : "DLSWR1:") + JSON.stringify({kind:"error",code:"network",account:account,request:request});
-    };
-    document.head.appendChild(script);
+    legacy.onerror = function () { fail("network", dual ? "DLSWR2:" : "DLSWR1:"); };
+    document.head.appendChild(legacy);
 }());
 </script></body></html>
